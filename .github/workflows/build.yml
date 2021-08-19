@@ -29,7 +29,7 @@ jobs:
       run: |
           sudo rm -fr /opt/hostedtoolcache/go /usr/local/go /usr/bin/go /bin/go
           curl -o go.tar.gz -L \
-            https://github.com/AlekSi/golang-tip/releases/download/tip/master.linux-amd64.tar.gz
+            https://golang.org/dl/go1.17.linux-amd64.tar.gz
           sudo tar -C /usr/local -xzf go.tar.gz
           sudo ln -s /usr/local/go/bin/* /usr/local/bin/
           go version
@@ -38,7 +38,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build
-      run: go build -gcflags=-G=3 ./...
+      run: go build -v ./...
 
     - name: Upload Coverage
       uses: codecov/codecov-action@v1
