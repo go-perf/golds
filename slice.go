@@ -90,7 +90,19 @@ func(s slice[E]) Filter(fn func(v E) bool) slice[E] {
 		}
 	}
 	return filtered
-} 
+}
+
+func(s slice[E]) FilterInPlace(fn func(v E) bool) {
+	var i int
+	for _, v := range s {
+		if fn(v) {
+			s[i] = v
+			i++
+		}
+	}
+	var empty E
+	s[i:].Fill(empty)
+}
 
 // Select returns gets elements by indexes and puts them into a new slice.
 // If index is negative, then len-index element will be used.
@@ -132,3 +144,69 @@ func(s *slice[E]) Pop() (E, bool) {
 	*s = (*s)[:n-1]
 	return v, true
 }
+
+func(s slice[E]) Copy() slice[E] {
+	var cp = make(slice[E], s.Len())
+	copy(cp, s)
+	return cp
+}
+
+func(s slice[E]) CopyWith(fn func(E) E) slice[E] {
+	var cp = make(slice[E], s.Len())
+	for i, v := range s {
+		cp[i] = fn(v)
+	}
+	return cp
+}
+
+// Fill slice using provided value.
+func(s slice[E]) Fill(v E) {
+	var n = s.Len()
+	if n == 0 {
+		return
+	}
+	s[0] = v
+	for i := 1; i < n; i *= 2 {
+		copy(s[:], s[:i])
+	}
+}
+
+// FillWith uses results of fn to fill the slice.
+func(s slice[E]) FillWith(fn func() E) {
+	for i := range s {
+		s[i] = fn()
+	}
+}
+
+// Insert value at i-position, shifting elements to the end of slice.
+// Panics if the index is out of range.
+// 	Slice{1, 2, 3}.Insert(1, 100) -> Slice{1, 100, 2, 3}
+func(s *slice[E]) Insert(i int, v E) {
+	var sl = *s
+	*s = append(sl[:i+1], sl[i:]...)
+	(*s)[i] = v
+}
+
+// Delete value at i-position, shifting elements to the begining of slice.
+// Panics if the index is out of range.
+// 	Slice{1, 2, 3}.Delete(1) -> Slice{2, 3}
+func(s *slice[E]) Delete(i int) {
+	var sl = *s
+	sl = append(sl[:i], sl[i+1:]...)
+
+	var empty E
+	(*s)[s.Len()-1] = empty
+	*s = sl
+}
+
+// DeleteNoOrder exchanges the i-th and the last element 
+// of the slice and cuts the last, now duplicated, element.
+func(s *slice[E]) DeleteNoOrder(i int) {
+	var n = s.Len()
+	var sl = *s
+	sl[i] = sl[n-1]
+
+	var empty E
+	sl[n-1] = empty
+	*s = sl[:n-1]
+} 
