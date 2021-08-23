@@ -209,4 +209,4 @@ func(s *slice[E]) DeleteNoOrder(i int) {
 	var empty E
 	sl[n-1] = empty
 	*s = sl[:n-1]
-} 
+}
