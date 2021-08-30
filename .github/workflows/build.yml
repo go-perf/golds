@@ -25,14 +25,10 @@ jobs:
     #   with:
     #     go-version: ^1.17
 
-    - name: Install Go
-      run: |
-          sudo rm -fr /opt/hostedtoolcache/go /usr/local/go /usr/bin/go /bin/go
-          curl -o go.tar.gz -L \
-            https://golang.org/dl/go1.17.linux-amd64.tar.gz
-          sudo tar -C /usr/local -xzf go.tar.gz
-          sudo ln -s /usr/local/go/bin/* /usr/local/bin/
-          go version
+    - name: Set up gotip
+      uses: actions/setup-go@v2
+      with:
+        go-version: tip
 
     - name: Check out code
       uses: actions/checkout@v2
