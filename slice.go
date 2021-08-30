@@ -240,3 +240,28 @@ func SliceEqWith[A, B any](a []A, b []B, fn func(A, B) bool) bool {
 	}
 	return true
 }
+
+// SliceContains returns true if the slice contains the specified element.
+func SliceContains[E comparable](slice []E, v E) bool {
+	for _, e := range slice {
+		if e == v {
+			return true
+		} 
+	}
+	return false
+}
+
+// ContainsFn returns true, if fn-predicate returns true for any element of slice.
+func(slice Slice[E]) ContainsFn(fn func(E) bool) bool {
+	return SliceContainsFn(slice, fn)
+}
+
+// SliceContainsFn returns true, if fn-predicate returns true for any element of slice.
+func SliceContainsFn[E any](slice []E, fn func(E) bool) bool {
+	for _, e := range slice {
+		if fn(e) {
+			return true
+		} 
+	}
+	return false
+}
