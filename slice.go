@@ -207,3 +207,36 @@ func(s *Slice[E]) DeleteNoOrder(i int) {
 	sl[n-1] = empty
 	*s = sl[:n-1]
 }
+
+// EqWith compares slice with other one using provided hook.
+func(s Slice[E]) EqWith(other []E, fn func(E, E) bool) bool {
+	return SliceEqWith(s, other, fn)
+}
+
+// SliceEq compares two slices respecting element ordering. 
+// Empty slice is considered to be equal to nil slices.
+func SliceEq[E comparable](a, b []E) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// SliceEq compares two slices respecting element ordering using provided equality hook. 
+// Empty slice is considered to be equal to nil slices.
+func SliceEqWith[A, B any](a []A, b []B, fn func(A, B) bool) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if fn(v, b[i]) {
+			return false
+		}
+	}
+	return true
+}
