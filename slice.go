@@ -167,7 +167,7 @@ func(s Slice[E]) Fill(v E) {
 	}
 	s[0] = v
 	for i := 1; i < n; i *= 2 {
-		copy(s[:], s[:i])
+		copy(s[i:], s[:i])
 	}
 }
 
