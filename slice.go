@@ -19,10 +19,7 @@ func Repeat[E any](n int, v E) Slice[E] {
 		panic("golds.Repeat: negative Repeat count")
 	}
 	var s = make(Slice[E], n)
-	// TODO: use copy to fill slice for better performance
-	for i := range s {
-		s[i] = v
-	}
+	s.Fill(v)
 	return s
 } 
 
