@@ -267,9 +267,14 @@ func SliceContainsFn[E any](slice []E, fn func(E) bool) bool {
 
 // Reverse reverses the items of slice in place.
 func (slice Slice[E]) Reverse() {
-	var n = slice.Len()
+	Reverse(slice)
+}
+
+// Reverse reverses the items of slice in place.
+func Reverse[E any](slice []E) {
+	var n = len(slice)
 	for i := 0; i < n/2; i++ {
 		var j = n - i - 1
-		slice.Swap(i, j)
+		slice[i], slice[j] = slice[j], slice[i]
 	}
 }
