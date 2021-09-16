@@ -25,13 +25,13 @@ jobs:
     #   with:
     #     go-version: ^1.17
 
+      # https://github.com/actions/setup-go/issues/21
     - name: Install Go
       run: |
-          sudo rm -fr /opt/hostedtoolcache/go /usr/local/go /usr/bin/go /bin/go
-          curl -o go.tar.gz -L \
-            https://golang.org/dl/go1.17.linux-amd64.tar.gz
-          sudo tar -C /usr/local -xzf go.tar.gz
-          sudo ln -s /usr/local/go/bin/* /usr/local/bin/
+          git clone --depth=1 https://go.googlesource.com/go $HOME/gotip
+          cd $HOME/gotip/src
+          ./make.bash
+          sudo ln -s $HOME/gotip/bin/* /usr/local/bin/
           go version
 
     - name: Check out code
