@@ -58,7 +58,7 @@ func (s Slice[E]) Index(i int) E {
 // If i or j are negative, then uses elements len-i(j).
 func (s Slice[E]) Swap(i, j int) {
 	if i < 0 {
-		i = s.Len() - i
+		i = s.Len() + i
 	}
 	if j < 0 {
 		j = s.Len() - j
