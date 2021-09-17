@@ -49,7 +49,7 @@ func (s Slice[E]) Cap() int { return cap(s) }
 // Panics if index is out of [-len, len] range.
 func (s Slice[E]) Index(i int) E {
 	if i < 0 {
-		return s[s.Len()-i]
+		return s[s.Len()+i]
 	}
 	return s[i]
 }
