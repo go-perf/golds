@@ -3,10 +3,11 @@ package golds
 import (
 	"sort"
 	"testing"
+	"time"
 )
 
 func TestHeap(t *testing.T) {
-	h := NewHeap(0, intCmp)
+	h := NewHeap(0, func(a, b int) bool { return a < b })
 
 	if h == nil {
 		t.Error("cannot instantiate Heap")
@@ -70,11 +71,6 @@ func TestHeap(t *testing.T) {
 }
 
 func TestHeapBuild(t *testing.T) {
-	h := NewHeap(10, intCmp)
-	if h == nil {
-		t.Error("cannot instantiate Heap")
-	}
-
 	values := make([]int, 100)
 	for i := 0; i < 100; i++ {
 		if i <= 50 {
@@ -83,7 +79,8 @@ func TestHeapBuild(t *testing.T) {
 			values[i] = 100 - i
 		}
 	}
-	h.Build(values)
+
+	h := NewHeapFrom(values, func(a, b int) bool { return a < b })
 
 	if value := h.Size(); value != 100 {
 		t.Errorf("expected size %v, got %v", 100, value)
@@ -105,36 +102,76 @@ func TestHeapBuild(t *testing.T) {
 	}
 }
 
-func BenchmarkHeapPush(b *testing.B) {
-	h := NewHeap(1000, intCmp)
-	if h == nil {
-		b.Error("cannot instantiate Heap")
-	}
+func TestSimple(t *testing.T) {
+	h := NewHeap(1000, func(a, b int) bool {
+		return a > b
+	})
 
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		h.Push(i)
-	}
+	h.Push(1)
+	h.Push(2)
+	h.Push(3)
+	h.Push(7)
+	h.Push(17)
+	h.Push(19)
+	h.Push(25)
+	h.Push(36)
+	h.Push(100)
 
-	if h.Size() != b.N {
-		b.Fatalf("got %d want %d", h.Size(), b.N)
+	vals := h.Values()
+	sort.Slice(vals, func(i, j int) bool {
+		return vals[i] > vals[j]
+	})
+
+	for i := 0; h.Size() != 0; i++ {
+		g, ok := h.Pop()
+		if !ok {
+			t.Fatal()
+		}
+
+		if vals[i] != g {
+			t.Fatalf("%d: got %d want %d", i, g, vals[i])
+		}
 	}
 }
 
-func BenchmarkHeapPushPop(b *testing.B) {
-	h := NewHeap(1000, intCmp)
+func BenchmarkHeapPush(b *testing.B) {
+	h := NewHeap(1000, func(a, b int) bool { return a < b })
 	if h == nil {
 		b.Error("cannot instantiate Heap")
 	}
 
+	seed := int(time.Now().Unix())
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		h.Push(i)
-		if _, ok := h.Pop(); !ok {
-			b.Fatal()
+		for j := 0; j < 10; j++ {
+			h.Push((seed + j) % 10)
 		}
+
+		for j := 0; j < 10; j++ {
+			got, ok := h.Pop()
+			if !ok {
+				b.Fatal()
+			}
+			if got != j {
+				b.Fatalf("got %d want %d", got, j)
+			}
+		}
+
+		h.Reset()
+		for j := 0; j < 9; j++ {
+			h.Push(j)
+		}
+		for j := 0; j < 9; j++ {
+			got, ok := h.Pop()
+			if !ok {
+				b.Fatal()
+			}
+			if got != j {
+				b.Fatalf("got %d want %d", got, j)
+			}
+		}
+		h.Reset()
 	}
 
 	if h.Size() != 0 {
@@ -142,13 +179,31 @@ func BenchmarkHeapPushPop(b *testing.B) {
 	}
 }
 
-func intCmp(a, b int) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	default:
-		return 0
+func BenchmarkHeapPushPop(b *testing.B) {
+	h := NewHeap(1000, func(a, b int) bool { return a < b })
+	if h == nil {
+		b.Error("cannot instantiate Heap")
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		seed := int(time.Now().Unix())
+		for j := 0; j < 10; j++ {
+			h.Push((seed + j) % 10)
+		}
+		for j := 0; j < 10; j++ {
+			got, ok := h.Pop()
+			if !ok {
+				b.Fatal()
+			}
+			if got < 0 || got > 10 {
+				b.Fatalf("got %d", got)
+			}
+		}
+	}
+
+	if h.Size() != 0 {
+		b.Fatalf("got %d want %d", h.Size(), 0)
 	}
 }

@@ -3,11 +3,11 @@ package golds
 // Heap data structure.
 type Heap[T any] struct {
 	data []T
-	cmp  func(a, b T) int
+	cmp  func(a, b T) bool
 }
 
 // NewHeap instantiates a new heap with a given size.
-func NewHeap[T any](size int, cmp func(a, b T) int) *Heap[T] {
+func NewHeap[T any](size int, cmp func(a, b T) bool) *Heap[T] {
 	h := &Heap[T]{
 		data: make([]T, 0, size),
 		cmp:  cmp,
@@ -16,7 +16,7 @@ func NewHeap[T any](size int, cmp func(a, b T) int) *Heap[T] {
 }
 
 // NewHeapFrom instantiates a new heap with a given size.
-func NewHeapFrom[T any](v []T, cmp func(a, b T) int) *Heap[T] {
+func NewHeapFrom[T any](v []T, cmp func(a, b T) bool) *Heap[T] {
 	h := &Heap[T]{
 		data: make([]T, len(v)),
 		cmp:  cmp,
@@ -44,14 +44,14 @@ func (h *Heap[T]) Build(values []T) {
 
 	copy(h.data, values)
 	for i := size/2 - 1; i >= 0; i-- {
-		h.down(i)
+		h.siftDown(i)
 	}
 }
 
 // Push element to the heap.
 func (h *Heap[T]) Push(value T) {
 	h.data = append(h.data, value)
-	h.up(len(h.data) - 1)
+	h.siftUpLast()
 }
 
 // PushMany elements to the heap.
@@ -67,8 +67,8 @@ func (h *Heap[T]) Pop() (value T, ok bool) {
 		return zeroOf[T](), false
 	}
 	size := len(h.data) - 1
-	h.swap(0, size)
-	h.down(0)
+	h.data[0], h.data[size] = h.data[size], h.data[0]
+	h.siftDown(0)
 	value, h.data = h.data[size], h.data[:size]
 	return value, true
 }
@@ -98,53 +98,40 @@ func (h *Heap[T]) Top() (value T, ok bool) {
 
 // Values that are in the heap.
 func (h *Heap[T]) Values() []T {
-	return h.data[:]
+	vals := make([]T, len(h.data))
+	copy(vals, h.data)
+	return vals
 }
 
 // down pushes element down in the heap-tree
-func (h *Heap[T]) down(i int) {
-	size := len(h.data) - 1
-	for {
+func (h *Heap[T]) siftDown(i int) {
+	data := h.data
+	for i >= 0 && i < len(data) {
 		j := 2*i + 1
-		if j >= size {
+		if j <= 0 || j >= len(data)-1 {
 			break
 		}
-		if j2 := j + 1; j2 < size && h.cmp(h.data[j2], h.data[j]) < 0 {
+		if j2 := j + 1; j2 < len(data)-1 && j2 >= 0 && h.cmp(data[j2], data[j]) {
 			j = j2
 		}
-		if h.cmp(h.data[i], h.data[j]) < 0 {
+		if h.cmp(data[i], data[j]) {
 			break
 		}
-		h.swap(i, j)
+		data[i], data[j] = data[j], data[i]
 		i = j
 	}
 }
 
-// up pushes element up in the heap-tree
-func (h *Heap[T]) up(i int) {
-	for {
-		j := (i - 1) / 2
-		if h.cmp(h.data[i], h.data[j]) >= 0 {
+// siftUpLast pushes element up in the heap-tree.
+func (h *Heap[T]) siftUpLast() {
+	data := h.data
+	i := uint(len(data)) - 1
+	j := (uint(len(data)) - 2) >> 1
+	for i > j && i < uint(len(data)) {
+		if !h.cmp(data[i], data[j]) {
 			break
 		}
-		h.swap(j, i)
-		i = j
+		data[i], data[j] = data[j], data[i]
+		i, j = j, (j-1)>>1
 	}
-}
-
-// swap swaps elements on the given indexes
-func (h *Heap[T]) swap(i, j int) {
-	h.data[i], h.data[j] = h.data[j], h.data[i]
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func zeroOf[T any]() T {
-	var zero T
-	return zero
 }
