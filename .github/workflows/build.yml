@@ -2,54 +2,16 @@ name: build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to create'
-        required: true
-        default: 'v0.0.0'
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0' # run "At 00:00 on Sunday"
 
+# See https://github.com/cristalhq/.github/.github/workflows
 jobs:
-
   build:
-    name: Build
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: ['1.19.x', '1.20.x']
-    steps:
+    uses: cristalhq/.github/.github/workflows/build.yml@v0.5.0
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go }}
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v -count=1 -shuffle=on ./...
-
-  release:
-    if: github.event_name == 'workflow_dispatch'
-
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Checkout with tags
-        run: git fetch --prune --unshallow --tags
-
-      - name: Create release
-        run: |
-          git log --format="%C(auto) %H %s" `git tag --sort=-committerdate | head -1`...HEAD > changelog.txt
-          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
-          gh release create ${{ github.event.inputs.tag }} -F changelog.txt
+  vuln:
+    uses: cristalhq/.github/.github/workflows/vuln.yml@v0.5.0
